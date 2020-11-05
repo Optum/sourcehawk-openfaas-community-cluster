@@ -1,0 +1,7 @@
+
+config-locations:
+  - https://raw.githubusercontent.com/Optum/sourcehawk-parent/main/.sourcehawk/optum-oss.yml
+
+file-protocols:
+  - name: OpenFaaS Stack Configuration
+    repository-path: stack.yml
