@@ -5,9 +5,9 @@ provider:
 functions:
   sourcehawk-scan:
     lang: dockerfile
-    handler: ./sourcehawk-scan
-    image: sourcehawk-scan:latest
-  validate-config:
+    handler: ./scan
+    image: optum/sourcehawk-scan:0.1.0
+  sourcehawk-validate-config:
     lang: dockerfile
     handler: ./validate-config
-    image: sourcehawk-validate-config:latest
+    image: optum/sourcehawk-validate-config:0.1.0
