@@ -12,8 +12,9 @@ The `stack.yml` file is the main configuration for the community cluster.
 
 ### Deployments
 
-Deployments are triggered automatically on `push` events to this repository's `main` branch.  This 
-is enabled through the `OpenFaaS Cloud Community Cluster` app integration.
+Deployments are triggered automatically on `push` events to this repository's `master` branch.  This 
+is enabled through the `OpenFaaS Cloud Community Cluster` app integration.  The default branch is still 
+`main`, and merges from `main` to `master` will start the deployment automatically.
 
 ### Cluster Dashboard
 
