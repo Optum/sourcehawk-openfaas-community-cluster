@@ -22,4 +22,4 @@ https://system.o6s.io
 ### OpenFaaS Community Cluster Docs
 
 - https://docs.openfaas.com/openfaas-cloud/user-guide
-- https://github.com/optnfaas/community-cluster/tree/master/docs
+- https://github.com/openfaas/community-cluster/tree/master/docs
