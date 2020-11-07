@@ -37,7 +37,7 @@ set -e
 UUID=$(date +%s%N | cut -b1-13)
 ZIP_FILE="${GITHUB_ORG}-${GITHUB_REPO}-${GITHUB_REF}-$UUID.zip"
 SOURCE_CODE_EXTRACT_DIRECTORY="${GITHUB_ORG}-${GITHUB_REPO}-${GITHUB_REF}-$UUID"
-PROVIDED_CONFIG_FILE=".sourcehawk-provided.yml"
+PROVIDED_CONFIG_FILE="/tmp/sourcehawk-provided.yml"
 
 error_and_exit() {
   echo "$2" > /dev/stderr
@@ -51,7 +51,7 @@ cleanup() {
 trap cleanup INT EXIT
 
 # Retrieve the provided config from stdin
-if [ -p /dev/stdin ]; then
+if read -t 0; then
   cat > "$PROVIDED_CONFIG_FILE"
 fi
 
@@ -92,7 +92,7 @@ SOURCE_CODE_ROOT_DIRECTORY=$(cd "$SOURCE_CODE_EXTRACT_DIRECTORY" && cd */. && pw
 # Use the provided config file if present, otherwise default
 CONFIG_FILE="${SOURCE_CODE_ROOT_DIRECTORY}/sourcehawk.yml"
 if [ -f "$PROVIDED_CONFIG_FILE" ]; then
-  CONFIG_FILE="$(pwd)/$PROVIDED_CONFIG_FILE"
+  CONFIG_FILE="$PROVIDED_CONFIG_FILE"
 fi
 
 >&2 echo "got here 5"
