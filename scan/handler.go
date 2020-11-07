@@ -136,7 +136,7 @@ func handleScanCommandResult(commandStdout *bytes.Buffer, commandStderr *bytes.B
 	if commandExitCode == 1 || err == nil {
 		responseWriter.WriteHeader(http.StatusOK)
 		responseWriter.Header().Set("Content-Type", request.Header.Get("Accept"))
-		responseWriter.Write([]byte(commandStderr.String()))
+		responseWriter.Write([]byte(commandStdout.String()))
 		return
 	}
 	handleScanCommandError(commandExitCode, commandStderr, responseWriter, request)

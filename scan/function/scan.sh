@@ -51,6 +51,9 @@ cleanup() {
 
 trap cleanup INT EXIT
 
+# Make the temp working directory
+mkdir -p "$TEMP_DIR_PREFIX"
+
 # Retrieve the provided config from stdin
 if [ -p /dev/stdin ]; then
   cat > "$PROVIDED_CONFIG_FILE"
