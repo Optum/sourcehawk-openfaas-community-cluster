@@ -8,7 +8,9 @@ This repository hosts the deployment configuration for deploying Sourcehawk Open
 
 ### Configuration
 
-The `stack.yml` file is the main configuration for the community cluster.
+[![OpenFaaS](https://img.shields.io/badge/openfaas-cloud-blue.svg)](https://www.openfaas.com)
+
+The `stack.yml` file is the main configuration for the OpenFaas community cluster.
 
 ### Deployments
 
