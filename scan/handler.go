@@ -68,7 +68,7 @@ func validateAndParseRequest(request *http.Request) (*ScanRequest, error) {
 	}
 	var githubApiUrl string
 	if request.Header.Get("Github-API-URL") == "" {
-		githubApiUrl = "https://api.github.com/v3"
+		githubApiUrl = "https://api.github.com"
 	} else {
 		githubApiUrl = request.Header.Get("Github-API-URL")
 	}

@@ -68,6 +68,8 @@ else
   DOWNLOAD_RESPONSE_CODE=$(wget -S --header="Authorization: token $GITHUB_AUTH_TOKEN" "$GITHUB_ZIPBALL_URL" -O "$ZIP_FILE" 2>&1 | grep "HTTP/" | tail -1 | awk '{print $2}' || error_and_exit 65 "Error downloading/writing zip file")
 fi
 
+>&2 echo "Download response code: $DOWNLOAD_RESPONSE_CODE"
+
 if [ "$DOWNLOAD_RESPONSE_CODE" = 401 ]; then
   if [ -z "${GITHUB_AUTH_TOKEN}" ]; then
     error_and_exit 61 "Are you trying to scan a non-public repository? An authorization token is required."
