@@ -55,6 +55,8 @@ if [ -p /dev/stdin ]; then
   cat > "$PROVIDED_CONFIG_FILE"
 fi
 
+echo "got here 1: $(pwd)"
+
 # Download a zip file of the repository contents
 GITHUB_ZIPBALL_URL="$GITHUB_API_URL/repos/$GITHUB_ORG/$GITHUB_REPO/zipball/$GITHUB_REF"
 CURL_RESPONSE_CODE=0
@@ -63,6 +65,7 @@ if [ -z "${GITHUB_AUTH_TOKEN}" ]; then
 else
   CURL_RESPONSE_CODE=$(curl -L -s -w "%{http_code}" -H "Authorization: token $GITHUB_AUTH_TOKEN" "$GITHUB_ZIPBALL_URL" -o "$ZIP_FILE" || error_and_exit 65 "Error downloading/writing zip file")
 fi
+echo "curl completed: $CURL_RESPONSE_CODE"
 if [ "$CURL_RESPONSE_CODE" = 401 ]; then
   if [ -z "${GITHUB_AUTH_TOKEN}" ]; then
     error_and_exit 61 "Are you trying to scan a non-public repository? An authorization token is required."
@@ -73,12 +76,18 @@ elif [ "$CURL_RESPONSE_CODE" = 404 ]; then
   error_and_exit 64 "Could not find source code to scan.  If the repository requires access, make sure to provide an Authorization token"
 fi
 
+echo "got here 2"
+
 # Unzip the source code tarball
 mkdir -p "$SOURCE_CODE_EXTRACT_DIRECTORY" && unzip -qq -d "$SOURCE_CODE_EXTRACT_DIRECTORY" "$ZIP_FILE"
+
+echo "got here 3"
 
 # Grab the repository root from unzipped tarball
 # shellcheck disable=SC2035
 SOURCE_CODE_ROOT_DIRECTORY=$(cd "$SOURCE_CODE_EXTRACT_DIRECTORY" && cd */. && pwd)
+
+echo "got here 4"
 
 # Use the provided config file if present, otherwise default
 CONFIG_FILE="${SOURCE_CODE_ROOT_DIRECTORY}/sourcehawk.yml"
@@ -86,8 +95,12 @@ if [ -f "$PROVIDED_CONFIG_FILE" ]; then
   CONFIG_FILE="$(pwd)/$PROVIDED_CONFIG_FILE"
 fi
 
+echo "got here 5"
+
 # Execute the scan
 ./function/sourcehawk scan --verbosity MEDIUM --output-format "$OUTPUT_FORMAT" --config-file "$CONFIG_FILE" "$SOURCE_CODE_ROOT_DIRECTORY"
+
+echo "got here 6"
 
 # Cleanup everything
 cleanup
