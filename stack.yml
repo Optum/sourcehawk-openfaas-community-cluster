@@ -1,13 +1,16 @@
 version: 1.0
+
 provider:
   name: openfaas
   gateway: http://127.0.0.1:8080
+
 functions:
+
   sourcehawk-scan:
-    lang: dockerfile
+    lang: golang-middleware
     handler: ./scan
-    image: optum/sourcehawk-scan:0.1.0
-  sourcehawk-validate-config:
-    lang: dockerfile
-    handler: ./validate-config
-    image: optum/sourcehawk-validate-config:0.1.0
+    image: sourcehawk-scan:0.1.0
+    constraints:
+      - "node.platform.os == linux"
+    labels:
+      sourcehawk-version: 0.1.5
