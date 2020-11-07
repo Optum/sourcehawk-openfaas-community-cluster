@@ -6,7 +6,7 @@ provider:
 
 functions:
 
-  scan:
+  sourcehawk-scan:
     lang: golang-middleware
     handler: ./scan
     image: sourcehawk-scan:0.1.0
