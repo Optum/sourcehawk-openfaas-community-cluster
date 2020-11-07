@@ -68,8 +68,6 @@ else
   DOWNLOAD_RESPONSE_CODE=$(wget -S --header="Authorization: token $GITHUB_AUTH_TOKEN" "$GITHUB_ZIPBALL_URL" -O "$ZIP_FILE" 2>&1 | grep "HTTP/" | tail -1 | awk '{print $2}' || error_and_exit 65 "Error downloading/writing zip file")
 fi
 
->&2 echo "Download response code: $DOWNLOAD_RESPONSE_CODE"
-
 if [ "$DOWNLOAD_RESPONSE_CODE" = 401 ]; then
   if [ -z "${GITHUB_AUTH_TOKEN}" ]; then
     error_and_exit 61 "Are you trying to scan a non-public repository? An authorization token is required."
@@ -87,14 +85,20 @@ mkdir -p "$SOURCE_CODE_EXTRACT_DIRECTORY" && unzip -qq -d "$SOURCE_CODE_EXTRACT_
 # shellcheck disable=SC2035
 SOURCE_CODE_ROOT_DIRECTORY=$(cd "$SOURCE_CODE_EXTRACT_DIRECTORY" && cd */. && pwd)
 
+>&2 echo "Source code root directory: $SOURCE_CODE_ROOT_DIRECTORY"
+
 # Use the provided config file if present, otherwise default
 CONFIG_FILE="${SOURCE_CODE_ROOT_DIRECTORY}/sourcehawk.yml"
 if [ -f "$PROVIDED_CONFIG_FILE" ]; then
   CONFIG_FILE="$PROVIDED_CONFIG_FILE"
 fi
 
+>&2 echo "Config file: $CONFIG_FILE"
+
 # Execute the scan
 ./function/sourcehawk scan --verbosity MEDIUM --output-format "$OUTPUT_FORMAT" --config-file "$CONFIG_FILE" "$SOURCE_CODE_ROOT_DIRECTORY"
+
+>&2 echo "Scan exit code: $?"
 
 # Cleanup everything
 cleanup
