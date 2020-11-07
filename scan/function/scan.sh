@@ -87,7 +87,7 @@ if [ -f "$PROVIDED_CONFIG_FILE" ]; then
 fi
 
 # Execute the scan
-./sourcehawk scan --verbosity MEDIUM --output-format "$OUTPUT_FORMAT" --config-file "$CONFIG_FILE" "$SOURCE_CODE_ROOT_DIRECTORY"
+./function/sourcehawk scan --verbosity MEDIUM --output-format "$OUTPUT_FORMAT" --config-file "$CONFIG_FILE" "$SOURCE_CODE_ROOT_DIRECTORY"
 
 # Cleanup everything
 cleanup

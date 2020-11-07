@@ -89,7 +89,7 @@ func validateAndParseRequest(request *http.Request) (*ScanRequest, error) {
 
 // Execute the scan command
 func executeScanCommand(scanRequest ScanRequest, stdout *bytes.Buffer, stderr *bytes.Buffer, responseWriter http.ResponseWriter, request *http.Request) (int, error) {
-	command := exec.Command("./scan.sh")
+	command := exec.Command("./function/scan.sh")
 	command.Env = createScanCommandEnvironment(scanRequest)
 	command.Stdin = request.Body
 	command.Stdout = stdout
