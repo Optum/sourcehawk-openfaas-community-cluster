@@ -61,20 +61,20 @@ fi
 
 # Download a zip file of the repository contents
 GITHUB_ZIPBALL_URL="$GITHUB_API_URL/repos/$GITHUB_ORG/$GITHUB_REPO/zipball/$GITHUB_REF"
-CURL_RESPONSE_CODE=0
+DOWNLOAD_RESPONSE_CODE=0
 if [ -z "${GITHUB_AUTH_TOKEN}" ]; then
-  CURL_RESPONSE_CODE=$(curl -L -s -w "%{http_code}" "$GITHUB_ZIPBALL_URL" -o "$ZIP_FILE" || error_and_exit 65 "Error downloading/writing zip file")
+  DOWNLOAD_RESPONSE_CODE=$(wget -S "$GITHUB_ZIPBALL_URL" -O "$ZIP_FILE" 2>&1 | grep "HTTP/" | tail -1 | awk '{print $2}' || error_and_exit 65 "Error downloading/writing zip file")
 else
-  CURL_RESPONSE_CODE=$(curl -L -s -w "%{http_code}" -H "Authorization: token $GITHUB_AUTH_TOKEN" "$GITHUB_ZIPBALL_URL" -o "$ZIP_FILE" || error_and_exit 65 "Error downloading/writing zip file")
+  DOWNLOAD_RESPONSE_CODE=$(wget -S --header="Authorization: token $GITHUB_AUTH_TOKEN" "$GITHUB_ZIPBALL_URL" -O "$ZIP_FILE" 2>&1 | grep "HTTP/" | tail -1 | awk '{print $2}' || error_and_exit 65 "Error downloading/writing zip file")
 fi
 
-if [ "$CURL_RESPONSE_CODE" = 401 ]; then
+if [ "$DOWNLOAD_RESPONSE_CODE" = 401 ]; then
   if [ -z "${GITHUB_AUTH_TOKEN}" ]; then
     error_and_exit 61 "Are you trying to scan a non-public repository? An authorization token is required."
   else
     error_and_exit 61 "The authorization token provided is not valid"
   fi
-elif [ "$CURL_RESPONSE_CODE" = 404 ]; then
+elif [ "$DOWNLOAD_RESPONSE_CODE" = 404 ]; then
   error_and_exit 64 "Could not find source code to scan.  If the repository requires access, make sure to provide an Authorization token"
 fi
 
