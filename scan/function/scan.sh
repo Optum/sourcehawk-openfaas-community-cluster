@@ -31,15 +31,17 @@ set -e
 # 61: Github Authorization Failure
 # 64: Github Org / Repo / Ref Not Found
 # 65: Error Downloading Source Code
-# 66: Scan resulted in error
+# 66: Scan resulted in exit code (1)
+# 67: Scan resulted in exit code (2)
+# 68: Scan resulted in unknown error
 #
 ###############################################################################
 
-UUID=$(date +%s%N | cut -b1-13)
-TEMP_DIR_PREFIX="/tmp/${GITHUB_ORG}-${GITHUB_REPO}-${GITHUB_REF}-$UUID"
-ZIP_FILE="$TEMP_DIR_PREFIX/source.zip"
-SOURCE_CODE_EXTRACT_DIRECTORY="$TEMP_DIR_PREFIX/source"
-PROVIDED_CONFIG_FILE="$TEMP_DIR_PREFIX/sourcehawk-provided.yml"
+TEMP_DIR="/tmp/${GITHUB_ORG}-${GITHUB_REPO}-${GITHUB_REF}-$(date +%s%N | cut -b1-13)"
+ZIP_FILE="$TEMP_DIR/source.zip"
+SOURCE_CODE_EXTRACT_DIRECTORY="$TEMP_DIR/source"
+PROVIDED_CONFIG_FILE="$TEMP_DIR/sourcehawk-provided.yml"
+ERROR_OUTPUT_FILE="$TEMP_DIR/scan_error.txt"
 
 error_and_exit() {
   echo "$2" > /dev/stderr
@@ -47,37 +49,29 @@ error_and_exit() {
 }
 
 cleanup() {
-  rm -rf "$ZIP_FILE" "$SOURCE_CODE_EXTRACT_DIRECTORY" "$PROVIDED_CONFIG_FILE-"
+  rm -rf "$TEMP_DIR"
 }
 
 trap cleanup INT EXIT
 
 # Make the temp working directory
-mkdir -p "$TEMP_DIR_PREFIX"
+mkdir -p "$TEMP_DIR"
 
 # Retrieve the provided config from stdin
 # shellcheck disable=SC2162 disable=SC2039
-if read -t 0; then
-  cat > "$PROVIDED_CONFIG_FILE"
-fi
+#if read -t 0; then
+#  cat > "$PROVIDED_CONFIG_FILE"
+#fi
 
 # Download a zip file of the repository contents
 GITHUB_ZIPBALL_URL="$GITHUB_API_URL/repos/$GITHUB_ORG/$GITHUB_REPO/zipball/$GITHUB_REF"
-DOWNLOAD_RESPONSE_CODE=0
-if [ -z "${GITHUB_AUTH_TOKEN}" ]; then
-  DOWNLOAD_RESPONSE_CODE=$(wget -S "$GITHUB_ZIPBALL_URL" -O "$ZIP_FILE" 2>&1 | grep "HTTP/" | tail -1 | awk '{print $2}' || error_and_exit 65 "Error downloading/writing zip file")
-else
-  DOWNLOAD_RESPONSE_CODE=$(wget -S --header="Authorization: token $GITHUB_AUTH_TOKEN" "$GITHUB_ZIPBALL_URL" -O "$ZIP_FILE" 2>&1 | grep "HTTP/" | tail -1 | awk '{print $2}' || error_and_exit 65 "Error downloading/writing zip file")
-fi
+DOWNLOAD_RESPONSE_INFO=$(wget -S --header="Authorization: token $GITHUB_AUTH_TOKEN" "$GITHUB_ZIPBALL_URL" -O "$ZIP_FILE" 2>&1 || error_and_exit 65 "Error downloading/writing zip file")
+DOWNLOAD_RESPONSE_CODE=$(echo "$DOWNLOAD_RESPONSE_INFO" | grep "HTTP/" | tail -1 | awk '{ print $2 }')
 
 if [ "$DOWNLOAD_RESPONSE_CODE" = 401 ]; then
-  if [ -z "${GITHUB_AUTH_TOKEN}" ]; then
-    error_and_exit 61 "Are you trying to scan a non-public repository? An authorization token is required."
-  else
-    error_and_exit 61 "The authorization token provided is not valid"
-  fi
+  error_and_exit 61 "The authorization token provided is not valid or does not have proper access"
 elif [ "$DOWNLOAD_RESPONSE_CODE" = 404 ]; then
-  error_and_exit 64 "Could not find source code to scan.  If the repository requires access, make sure to provide an Authorization token"
+  error_and_exit 64 "Could not find source code to scan.  Please make sure the token provided has proper access."
 fi
 
 # Unzip the source code tarball
@@ -93,8 +87,18 @@ if [ -f "$PROVIDED_CONFIG_FILE" ] && [ ! -s "$PROVIDED_CONFIG_FILE" ]; then
   CONFIG_FILE="$PROVIDED_CONFIG_FILE"
 fi
 
-# Execute the scan
->&2 ./function/sourcehawk scan --verbosity MEDIUM --output-format "$OUTPUT_FORMAT" --config-file "$CONFIG_FILE" "$SOURCE_CODE_ROOT_DIRECTORY" || error_and_exit 66 "Error performing scan"
+# Execute the sourcehawk scan
+if ! ./function/sourcehawk scan --verbosity MEDIUM --output-format "$OUTPUT_FORMAT" --config-file "$CONFIG_FILE" "$SOURCE_CODE_ROOT_DIRECTORY" 2>"$ERROR_OUTPUT_FILE"; then
+  SCAN_EXIT_CODE=$?
+  if [ $SCAN_EXIT_CODE -eq 1 ]; then
+    exit 66
+  elif [ $SCAN_EXIT_CODE -eq 2 ]; then
+    error_and_exit 67 "Improper usage of scan"
+  else
+    cat "$ERROR_OUTPUT_FILE" >&2
+    error_and_exit 68 "Unknown error performing scan: $SCAN_EXIT_CODE"
+  fi
+fi
 
 # Cleanup everything
 cleanup

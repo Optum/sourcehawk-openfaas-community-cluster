@@ -58,6 +58,9 @@ func validateAndParseRequest(request *http.Request) (*ScanRequest, error) {
 		return nil, errors.New("Request URL must contain Github Organization and Repository")
 	}
 	authToken := request.Header.Get("Authorization")
+	if authToken == "" {
+	    return nil, errors.New("Missing Authorization header.  Please use a Github PAT")
+	}
 	var output string
 	if request.Header.Get("Accept") == "application/json" {
 		output = "JSON"
@@ -133,10 +136,10 @@ func createScanCommandEnvironment(scanRequest ScanRequest) []string {
 
 // Handle the scan command result
 func handleScanCommandResult(commandStdout *bytes.Buffer, commandStderr *bytes.Buffer, commandExitCode int, err error, responseWriter http.ResponseWriter, request *http.Request) {
-	if commandExitCode == 1 || err == nil {
+	if commandExitCode == 66 || err == nil {
 		responseWriter.WriteHeader(http.StatusOK)
 		responseWriter.Header().Set("Content-Type", request.Header.Get("Accept"))
-		responseWriter.Write([]byte(commandStderr.String()))
+		responseWriter.Write([]byte(commandStdout.String()))
 		return
 	}
 	handleScanCommandError(commandExitCode, commandStderr, responseWriter, request)
@@ -149,12 +152,10 @@ func handleScanCommandError(commandExitCode int, commandStderr *bytes.Buffer, re
 		responseWriter.WriteHeader(http.StatusUnauthorized)
 	} else if commandExitCode == 64 {
 		responseWriter.WriteHeader(http.StatusNotFound)
-	} else if commandExitCode == 65 {
-		responseWriter.WriteHeader(http.StatusInternalServerError)
 	} else {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 	}
-	responseWriter.Header().Set("Content-Type", "text/plain") // TODO: dynamic
+	responseWriter.Header().Set("Content-Type", "text/plain")
 	responseWriter.Header().Set("Scan-Exit-Code", fmt.Sprintf("%d", commandExitCode))
 	responseWriter.Write([]byte(commandStderr.String() + "\n"))
 }
