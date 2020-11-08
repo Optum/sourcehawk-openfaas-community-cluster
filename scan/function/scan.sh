@@ -87,13 +87,11 @@ mkdir -p "$SOURCE_CODE_EXTRACT_DIRECTORY" && unzip -qq -d "$SOURCE_CODE_EXTRACT_
 # shellcheck disable=SC2035
 SOURCE_CODE_ROOT_DIRECTORY=$(cd "$SOURCE_CODE_EXTRACT_DIRECTORY" && cd */. && pwd)
 
-# Use the provided config file if present, otherwise default
+# Use the provided config file if present and not empty, otherwise default
 CONFIG_FILE="${SOURCE_CODE_ROOT_DIRECTORY}/sourcehawk.yml"
-if [ -f "$PROVIDED_CONFIG_FILE" ]; then
+if [ -f "$PROVIDED_CONFIG_FILE" ] && [ ! -s "$PROVIDED_CONFIG_FILE" ]; then
   CONFIG_FILE="$PROVIDED_CONFIG_FILE"
 fi
-
->&2 cat "$CONFIG_FILE"
 
 # Execute the scan
 >&2 ./function/sourcehawk scan --verbosity MEDIUM --output-format "$OUTPUT_FORMAT" --config-file "$CONFIG_FILE" "$SOURCE_CODE_ROOT_DIRECTORY" || error_and_exit 66 "Error performing scan"
