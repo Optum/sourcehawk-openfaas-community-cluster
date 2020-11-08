@@ -88,17 +88,15 @@ if [ -f "$PROVIDED_CONFIG_FILE" ] && [ ! -s "$PROVIDED_CONFIG_FILE" ]; then
 fi
 
 # Execute the sourcehawk scan
-if ! ./function/sourcehawk scan --verbosity MEDIUM --output-format "$OUTPUT_FORMAT" --config-file "$CONFIG_FILE" "$SOURCE_CODE_ROOT_DIRECTORY" 2>"$ERROR_OUTPUT_FILE"; then
-  SCAN_EXIT_CODE=$?
-  if [ $SCAN_EXIT_CODE -eq 1 ]; then
-    exit 66
-  elif [ $SCAN_EXIT_CODE -eq 2 ]; then
-    error_and_exit 67 "Improper usage of scan"
-  else
-    cat "$ERROR_OUTPUT_FILE" >&2
-    error_and_exit 68 "Unknown error performing scan: $SCAN_EXIT_CODE"
-  fi
+./function/sourcehawk scan --verbosity MEDIUM --output-format "$OUTPUT_FORMAT" --config-file "$CONFIG_FILE" "$SOURCE_CODE_ROOT_DIRECTORY" 2>"$ERROR_OUTPUT_FILE"
+SCAN_EXIT_CODE=$?
+if [ $SCAN_EXIT_CODE -eq 0 ]; then
+  exit 0
+elif [ $SCAN_EXIT_CODE -eq 1 ]; then
+  exit 66
+elif [ $SCAN_EXIT_CODE -eq 2 ]; then
+  error_and_exit 67 "Improper usage of scan"
+else
+  cat "$ERROR_OUTPUT_FILE" >&2
+  error_and_exit 68 "Unknown error performing scan: $SCAN_EXIT_CODE"
 fi
-
-# Cleanup everything
-cleanup
