@@ -31,6 +31,7 @@ set -e
 # 61: Github Authorization Failure
 # 64: Github Org / Repo / Ref Not Found
 # 65: Error Downloading Source Code
+# 66: Scan resulted in error
 #
 ###############################################################################
 
@@ -55,7 +56,8 @@ trap cleanup INT EXIT
 mkdir -p "$TEMP_DIR_PREFIX"
 
 # Retrieve the provided config from stdin
-if [ -p /dev/stdin ]; then
+# shellcheck disable=SC2162 disable=SC2039
+if read -t 0; then
   cat > "$PROVIDED_CONFIG_FILE"
 fi
 
@@ -85,20 +87,17 @@ mkdir -p "$SOURCE_CODE_EXTRACT_DIRECTORY" && unzip -qq -d "$SOURCE_CODE_EXTRACT_
 # shellcheck disable=SC2035
 SOURCE_CODE_ROOT_DIRECTORY=$(cd "$SOURCE_CODE_EXTRACT_DIRECTORY" && cd */. && pwd)
 
->&2 echo "Source code root directory: $SOURCE_CODE_ROOT_DIRECTORY"
-
 # Use the provided config file if present, otherwise default
 CONFIG_FILE="${SOURCE_CODE_ROOT_DIRECTORY}/sourcehawk.yml"
 if [ -f "$PROVIDED_CONFIG_FILE" ]; then
   CONFIG_FILE="$PROVIDED_CONFIG_FILE"
 fi
 
->&2 echo "Config file: $CONFIG_FILE"
-
 # Execute the scan
-./function/sourcehawk scan --verbosity MEDIUM --output-format "$OUTPUT_FORMAT" --config-file "$CONFIG_FILE" "$SOURCE_CODE_ROOT_DIRECTORY"
-
->&2 echo "Scan exit code: $?"
+if ! ./function/sourcehawk scan --verbosity MEDIUM --output-format "$OUTPUT_FORMAT" --config-file "$CONFIG_FILE" "$SOURCE_CODE_ROOT_DIRECTORY"; then
+  >&2 echo "Scan exit code: $?"
+  error_and_exit 66 "Error performing scan"
+fi
 
 # Cleanup everything
 cleanup
