@@ -20,7 +20,7 @@ is enabled through the `OpenFaaS Cloud Community Cluster` app integration.  The 
 
 ### Cluster Dashboard
 
-https://system.o6s.io
+https://system.o6s.io/dashboard/Optum
 
 ### OpenFaaS Community Cluster Docs
 

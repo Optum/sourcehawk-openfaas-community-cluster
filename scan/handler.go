@@ -59,7 +59,7 @@ func validateAndParseRequest(request *http.Request) (*ScanRequest, error) {
 	}
 	authToken := request.Header.Get("Authorization")
 	if authToken == "" {
-	    return nil, errors.New("Missing Authorization header.  Please use a Github PAT")
+		return nil, errors.New("Missing Authorization header.  Please use a Github PAT")
 	}
 	var output string
 	if request.Header.Get("Accept") == "application/json" {
