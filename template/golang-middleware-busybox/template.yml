@@ -1,4 +1,7 @@
 language: golang-middleware-busybox
 fprocess: ./handler
 welcome_message: |
-  You have created a new function which uses Golang 1.15.3 and which runs on BusyBox glibc
+  You have created a new function which uses Golang 1.15.3 and which runs on BusyBox glibc.
+
+  Any binaries that you have in your "function/bin" directory will be included and executable
+  from your golang function handler.
