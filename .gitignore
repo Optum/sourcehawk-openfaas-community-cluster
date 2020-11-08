@@ -2,4 +2,5 @@ build
 .idea
 *.iml
 
-template
+template/*
+!template/golang-middleware-busybox

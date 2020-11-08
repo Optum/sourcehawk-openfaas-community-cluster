@@ -1,0 +1,4 @@
+language: golang-middleware-busybox
+fprocess: ./handler
+welcome_message: |
+  You have created a new function which uses Golang 1.15.3 and which runs on BusyBox glibc

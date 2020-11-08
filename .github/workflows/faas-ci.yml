@@ -1,0 +1,17 @@
+name: Sourcehawk Scan
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: FaaS Build
+        uses: docker://openfaas/faas-cli:0.12.14
+        with:
+          args: build
+
+
+

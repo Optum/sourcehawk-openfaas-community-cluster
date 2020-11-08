@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -28,9 +29,9 @@ var (
 // This is the main function which handles requests
 func Handle(responseWriter http.ResponseWriter, request *http.Request) {
 	configureLogging()
-	scanRequest, err := validateAndParseRequest(request)
+	scanRequest, err, statusCode := validateAndParseRequest(request)
 	if err != nil {
-		responseWriter.WriteHeader(http.StatusBadRequest)
+		responseWriter.WriteHeader(statusCode)
 		responseWriter.Write([]byte(err.Error() + "\n"))
 		return
 	}
@@ -46,7 +47,7 @@ func configureLogging() {
 }
 
 // Validate and parse the request
-func validateAndParseRequest(request *http.Request) (*ScanRequest, error) {
+func validateAndParseRequest(request *http.Request) (*ScanRequest, error, int) {
 	path := request.URL.Path
 	if strings.HasPrefix(path, "/") {
 		runes := []rune(path)
@@ -55,11 +56,11 @@ func validateAndParseRequest(request *http.Request) (*ScanRequest, error) {
 	pathPieces := strings.Split(path, "/")
 	if len(pathPieces) < 2 {
 		errorLog.Printf("Request URL is invalid: %s", path)
-		return nil, errors.New("Request URL must contain Github Organization and Repository")
+		return nil, errors.New("Request URL must contain Github Organization and Repository"), http.StatusBadRequest
 	}
 	authToken := request.Header.Get("Authorization")
 	if authToken == "" {
-		return nil, errors.New("Missing Authorization header.  Please use a Github PAT")
+		return nil, errors.New("Missing Authorization header.  Please use a Github PAT"), http.StatusUnauthorized
 	}
 	var output string
 	if request.Header.Get("Accept") == "application/json" {
@@ -74,6 +75,10 @@ func validateAndParseRequest(request *http.Request) (*ScanRequest, error) {
 		githubApiUrl = "https://api.github.com"
 	} else {
 		githubApiUrl = request.Header.Get("Github-API-URL")
+		_githubApiUrl, err = url.ParseRequestURI(githubApiUrl)
+		if err != nil {
+			return nil, errors.New("Invalid value for Github-API-URL request header"), http.StatusBadRequest
+		}
 	}
 	ref := "main"
 	if len(pathPieces) > 2 {
@@ -87,12 +92,12 @@ func validateAndParseRequest(request *http.Request) (*ScanRequest, error) {
 		githubRef:       ref,
 		outputFormat:    output,
 	}
-	return &scanRequest, nil
+	return &scanRequest, nil, -1
 }
 
 // Execute the scan command
 func executeScanCommand(scanRequest ScanRequest, stdout *bytes.Buffer, stderr *bytes.Buffer, responseWriter http.ResponseWriter, request *http.Request) (int, error) {
-	command := exec.Command("./function/scan.sh")
+	command := exec.Command("./bin/scan.sh")
 	command.Env = createScanCommandEnvironment(scanRequest)
 	command.Stdin = request.Body
 	command.Stdout = stdout

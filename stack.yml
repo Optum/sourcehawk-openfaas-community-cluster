@@ -4,13 +4,14 @@ provider:
   name: openfaas
   gateway: http://127.0.0.1:8080
 
-functions:
+configuration:
+  copy:
+    - bin
 
+functions:
   sourcehawk-scan:
-    lang: golang-middleware
+    lang: golang-middleware-busybox
     handler: ./scan
     image: sourcehawk-scan:0.1.0
     constraints:
       - "node.platform.os == linux"
-    labels:
-      sourcehawk-version: 0.1.5
