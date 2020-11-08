@@ -93,10 +93,8 @@ if [ -f "$PROVIDED_CONFIG_FILE" ]; then
   CONFIG_FILE="$PROVIDED_CONFIG_FILE"
 fi
 
->&2 ./function/sourcehawk help
-
 # Execute the scan
-./function/sourcehawk scan --verbosity MEDIUM --output-format "$OUTPUT_FORMAT" --config-file "$CONFIG_FILE" "$SOURCE_CODE_ROOT_DIRECTORY" || error_and_exit 66 "Error performing scan"
+>&2 ./function/sourcehawk scan --verbosity MEDIUM --output-format "$OUTPUT_FORMAT" --config-file "$CONFIG_FILE" "$SOURCE_CODE_ROOT_DIRECTORY" || error_and_exit 66 "Error performing scan"
 
 # Cleanup everything
 cleanup
